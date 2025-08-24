@@ -4,8 +4,10 @@ Bienvenido a tu IDE de DuckDB potenciado por Reflex.
 import reflex as rx
 import pandas as pd
 import duckdb
-from typing import List, Dict, Any, Tuple
 import os
+
+from typing import List, Dict, Any, Tuple
+from reflex_monaco import monaco
 
 # --- Estilos para la UI ---
 # Se emula la paleta de colores y el layout de la UI de DuckDB.
@@ -25,15 +27,10 @@ MAIN_CONTENT_STYLE = {
     "overflow_y": "auto",
 }
 
-TEXT_AREA_STYLE = {
-    "height": "40vh",
-    "width": "100%",
-    "font_family": "monospace",
-    "font_size": "14px",
-    "border": "1px solid #ced4da",
+CODE_CELL_STYLE = {
+    "border": "1px solid #dee2e6",
     "border_radius": "6px",
-    "padding": "1em",
-    "margin_bottom": "1em",
+    "width": "100%",
 }
 
 # --- Estado de la Aplicación ---
@@ -43,6 +40,10 @@ class AppState(rx.State):
     El estado principal de la aplicación.
     Maneja la consulta SQL, la ejecución y los resultados.
     """
+    
+    # Nombre del script actual.
+    script_name: str = "Nuevo Script SQL"
+    
     # La consulta SQL que el usuario escribe en el editor.
     sql_query: str = "SELECT '¡Bienvenido!' AS Mensaje;"
     
@@ -219,21 +220,41 @@ def main_content() -> rx.Component:
     El área principal donde el usuario escribirá y verá los resultados de las consultas.
     """
     return rx.box(
-        rx.heading("Celda de Código SQL", size="5"),
-        rx.text_area(
-            value=AppState.sql_query,
-            on_change=AppState.set_sql_query,
-            style=TEXT_AREA_STYLE,
-            placeholder="Escribe tu consulta SQL aquí...",
+        # Nueva celda de código con barra superior y editor Monaco
+        rx.vstack(
+            # Barra superior para el nombre del script y el botón de ejecución
+            rx.hstack(
+                rx.input(
+                    value=AppState.script_name,
+                    on_change=AppState.set_script_name,
+                    placeholder="Nombre del Script...",
+                    variant="soft",
+                ),
+                rx.spacer(),
+                rx.button(
+                    "Ejecutar",
+                    on_click=AppState.run_query,
+                    is_loading=AppState.is_loading,
+                    size="2",
+                ),
+                padding="0.5em",
+                border_bottom="1px solid #dee2e6",
+                width="100%",
+            ),
+            # Editor Monaco
+            monaco(
+                default_value=AppState.sql_query,
+                on_change=AppState.set_sql_query,
+                default_language="sql",
+                theme="light",
+                height="40vh",
+            ),
+            spacing="0",
+            style=CODE_CELL_STYLE,
+            margin_bottom="2em",
         ),
-        rx.button(
-            "Ejecutar Consulta",
-            on_click=AppState.run_query,
-            is_loading=AppState.is_loading,
-            size="3",
-            variant="solid",
-        ),
-        rx.divider(margin_y="2em"),
+        
+        # Área de resultados
         rx.heading("Resultados", size="5"),
         rx.cond(
             AppState.error_message,

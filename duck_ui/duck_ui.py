@@ -13,7 +13,7 @@ from reflex_monaco import monaco
 # Se emula la paleta de colores y el layout de la UI de DuckDB.
 SIDEBAR_STYLE = {
     "width": "300px",
-    "padding": "1.5em", # Aumentado para mejor aspecto visual
+    "padding": "1.5em",
     "background_color": "#f8f9fa",
     "border_right": "1px solid #dee2e6",
     "height": "100vh",
@@ -131,8 +131,7 @@ def file_explorer_item(item: rx.Var[Tuple[str, bool]]) -> rx.Component:
     """
     Renderiza una fila para un archivo o carpeta en el explorador.
     """
-    # *** CORRECCIÓN AQUÍ ***
-    # Se accede a los elementos de la tupla Var usando índices.
+    
     name = item[0]
     is_dir = item[1]
     
@@ -220,7 +219,6 @@ def main_content() -> rx.Component:
     El área principal donde el usuario escribirá y verá los resultados de las consultas.
     """
     return rx.box(
-        # Nueva celda de código con barra superior y editor Monaco
         rx.vstack(
             # Barra superior para el nombre del script y el botón de ejecución
             rx.hstack(
